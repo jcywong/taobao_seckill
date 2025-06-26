@@ -3,21 +3,22 @@
 __author__ = 'Jerry'
 import datetime
 from tkinter import *
-from seckill.seckill_taobao import ChromeDrive
-
+from seckill.seckill_taobao import ChromeDrive, PlaywrightDrive
 
 
 def run_killer(txt, txt2):
     seckill_time = txt.get()
     password = str(txt2.get())
     print(seckill_time, password)
-    ChromeDrive(seckill_time = seckill_time, password = password).sec_kill()
+    # ChromeDrive(seckill_time = seckill_time, password = password).sec_kill()
+    with PlaywrightDrive(seckill_time = seckill_time, password = password) as web:
+        web.sec_kill()
 
 
 
 def main():
     win = Tk()
-    win.title('小熊秒杀助手')
+    win.title('老王秒杀助手')
     width = 380
     height = 300
     screenwidth = win.winfo_screenwidth()
@@ -30,7 +31,7 @@ def main():
     start_time = StringVar()
     txt = Entry(win, textvariable = start_time, width = 18)
     txt.grid(column = 1, row = 0)
-    start_time.set(str(datetime.datetime.now()))
+    start_time.set(str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
 
     lbl2 = Label(win, text = "支付密码：", width = 8, height = 2)
     lbl2.grid(column = 0, row = 1)
@@ -45,9 +46,9 @@ def main():
     txt0 = Label(win, text = '使用说明:',width = 8, height = 2)
     txt0.grid(column = 0, row = 3)
 
-    txt3 = Label(win, text = '1、安装chrome浏览器以及chromeDriver')
-    txt3.config(font = 'Helvetica -10 bold', fg = 'red')
-    txt3.place(x = 10, y = 120)
+    # txt3 = Label(win, text = '1、安装chrome浏览器以及chromeDriver')
+    # txt3.config(font = 'Helvetica -10 bold', fg = 'red')
+    # txt3.place(x = 10, y = 120)
 
     txt4 = Label(win, text = '2、抢购前要清空购物车，然后把要抢的东西加入购物车')
     txt4.config(font = 'Helvetica -10 bold', fg = 'red')

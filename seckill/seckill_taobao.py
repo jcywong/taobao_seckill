@@ -8,6 +8,7 @@ import platform
 from time import sleep
 from random import choice
 from datetime import datetime
+from turtledemo.penrose import start
 
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
@@ -21,6 +22,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 
+from playwright.sync_api import sync_playwright, Browser, Page
 
 # 抢购失败最大次数
 max_retry_count = 30
@@ -198,3 +200,162 @@ class ChromeDrive:
         cookie_json = json.dumps(cookies)
         with open('./cookies.txt', 'w', encoding = 'utf-8') as f:
             f.write(cookie_json)
+
+class PlaywrightDrive:
+
+    def __init__(self, seckill_time=None, password=None):
+        self.seckill_time = seckill_time
+        self.seckill_time_obj = datetime.strptime(self.seckill_time, '%Y-%m-%d %H:%M:%S')
+        self.password = password
+        self.playwright = None
+        self.browser: Browser = None
+        self.page: Page = None
+
+    def __enter__(self):
+        self.playwright = sync_playwright().start()
+        self.browser = self.playwright.chromium.launch(headless=False)
+        self.page = self.browser.new_page()
+        return self  # 返回当前对象，供 with 块使用
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if self.browser:
+            self.browser.close()
+        if self.playwright:
+            self.playwright.stop()
+
+    def login(self, login_url: str="https://www.taobao.com"):
+        if login_url:
+            self.page.goto(login_url)
+        else:
+            print("Please input the login url.")
+            raise Exception("Please input the login url.")
+
+
+        while True:
+            self.page.goto(login_url)
+            try:
+                login_button = self.page.get_by_text("亲，请登录")
+                if login_button:
+                    print("没登录，开始点击登录按钮...")
+                    login_button.click()
+                    print("请在60s内扫码登陆!!")
+                    sleep(60)
+                    if self.page.query_selector('//*[@id="J_SiteNavMytaobao"]/div[1]/a/span'):
+                        print("登陆成功")
+                        break
+                    else:
+                        print("登陆失败, 刷新重试, 请尽快登陆!!!")
+                        continue
+            except Exception as e:
+                print(str(e))
+                continue
+
+    def keep_wait(self):
+        self.login()
+        print("等待到点抢购...")
+        while True:
+            current_time = datetime.now()
+            if (self.seckill_time_obj - current_time).seconds > 180:
+                cart_button = self.page.locator('//*[@id="J_MiniCart"]/div[1]/a/span[2]')
+                if cart_button.is_enabled():
+                    cart_button.click()
+                print("每分钟刷新一次界面，防止登录超时...")
+                sleep(60)
+            else:
+                self.get_cookie()
+                print("抢购时间点将近，停止自动刷新，准备进入抢购阶段...")
+                break
+
+
+    def sec_kill(self):
+        self.keep_wait()
+        cart_button = self.page.locator('//*[@id="J_MiniCart"]/div[1]/a/span[2]')
+        if cart_button.is_enabled():
+            cart_button.click()
+        # self.page.goto("https://cart.taobao.com/cart.htm",timeout=3000)
+        sleep(3)
+
+        select_all_checkbox = self.page.locator('//*[@id="cart-operation-fixed"]/label/span[1]/input')
+        if select_all_checkbox:
+            select_all_checkbox.click()
+            print("已经选中全部商品！！！")
+
+        submit_succ = False
+        retry_count = 0
+
+        while True:
+            now = datetime.now()
+            if now >= self.seckill_time_obj:
+                print(f"开始抢购, 尝试次数： {str(retry_count)}")
+                if submit_succ:
+                    print("订单已经提交成功，无需继续抢购...")
+                    break
+                if retry_count > max_retry_count:
+                    print("重试抢购次数达到上限，放弃重试...")
+                    break
+
+                retry_count += 1
+
+                try:
+                    # 结算
+                    settle_button = self.page.locator('//*[@id="settlementContainer_1"]/div[4]/div/div[2]')
+                    if settle_button:
+                        settle_button.click()
+                        print("已经点击结算按钮...")
+                        click_submit_times = 0
+                        while True:
+                            try:
+                                if click_submit_times < 10:
+                                    self.page.get_by_text('提交订单').click()
+                                    print("已经点击提交订单按钮")
+                                    submit_succ = True
+                                    break
+                                else:
+                                    print("提交订单失败...")
+                            except Exception as e:
+                                print("没发现提交按钮, 页面未加载, 重试...")
+                                click_submit_times = click_submit_times + 1
+                                sleep(0.1)
+                except Exception as e:
+                    print(e)
+                    print("临时写的脚本, 可能出了点问题!!!")
+
+            sleep(0.1)
+        if submit_succ:
+            if self.password:
+                self.pay()
+
+
+    def pay(self):
+        try:
+            # 等待输入密码框出现
+            element = self.page.wait_for_selector('//*[@id="root"]/div/form/div[3]/div[1]/div[1]/div/div[1]/div/span', timeout=10000)
+            element.fill(self.password)
+            # 等待并点击提交按钮
+            comform_button = self.page.locator('//*[@id="root"]/div/form/button')
+            start_time = datetime.now()
+            while comform_button.is_enabled():
+                if (datetime.now() - start_time).seconds > 30:
+                    print("等待付款按钮超时，可能页面未加载完成，请检查网络连接或页面状态。")
+                    break
+                comform_button.click()
+                print("已经点击付款确定按钮")
+                sleep(0.1)
+            notify_user(msg="付款成功")
+        except Exception:
+            notify_user(msg="付款失败")
+
+    def get_cookie(self):
+        cookies = self.page.context.cookies()
+        cookie_json = json.dumps(cookies, ensure_ascii=False)
+        with open('./cookies.txt', 'w', encoding='utf-8') as f:
+            f.write(cookie_json)
+
+
+
+
+if __name__ == "__main__":
+    seckill_time = '2025-06-26 12:09:00'
+    password = '123456'
+    with PlaywrightDrive(seckill_time=seckill_time, password=password) as web:
+        web.sec_kill()
