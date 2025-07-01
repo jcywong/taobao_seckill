@@ -21,12 +21,12 @@ def get_useragent_data(filename: str="./useragents.txt") -> list:
 def notify_user(msg: str):
     print(msg)
 
-    token = os.getenv("TOKEN")
-    if not token:
-        return
-
-    rs = requests.post(url="https://sre24.com/api/v1/push", json=dict(
-        token=token,
-        msg=msg,
-    )).json()
-    assert rs["code"] == http.HTTPStatus.ACCEPTED, rs
+    # token = os.getenv("TOKEN")
+    # if not token:
+    #     return
+    #
+    # rs = requests.post(url="https://sre24.com/api/v1/push", json=dict(
+    #     token=token,
+    #     msg=msg,
+    # )).json()
+    # assert rs["code"] == http.HTTPStatus.ACCEPTED, rs

@@ -35,7 +35,7 @@ def main():
 
     lbl2 = Label(win, text = "支付密码：", width = 8, height = 2)
     lbl2.grid(column = 0, row = 1)
-    txt2 = Entry(win, width = 18, show = '*')
+    txt2 = Entry(win, width = 18, show = '*', state= 'disabled')
     txt2.grid(column = 1, row = 1)
 
     b1 = Button(win, text = '开始', command = lambda: run_killer(txt, txt2))
@@ -50,27 +50,27 @@ def main():
     # txt3.config(font = 'Helvetica -10 bold', fg = 'red')
     # txt3.place(x = 10, y = 120)
 
-    txt4 = Label(win, text = '2、抢购前要清空购物车，然后把要抢的东西加入购物车')
+    txt4 = Label(win, text = '1、抢购前要清空购物车，然后把要抢的东西加入购物车')
     txt4.config(font = 'Helvetica -10 bold', fg = 'red')
     txt4.place(x = 10, y = 140)
 
-    txt5 = Label(win, text = '3、开抢时间必须是 %Y-%m-%d %H:%M:%S 形式，如2020-12-29 12:10:15' )
+    txt5 = Label(win, text = '2、开抢时间必须是 %Y-%m-%d %H:%M:%S 形式，如2020-12-29 12:10:15' )
     txt5.config(font = 'Helvetica -10 bold', fg = 'red')
     txt5.place(x=10, y=160)
 
-    txt6 = Label(win, text = '4、输入开抢时间和支付密码后点开始，程序会控制浏览器打开淘宝登陆页')
+    txt6 = Label(win, text = '3、输入开抢时间和支付密码后点开始，程序会控制浏览器打开淘宝登陆页')
     txt6.config(font = 'Helvetica -10 bold', fg = 'red')
     txt6.place(x = 10, y = 180)
 
-    txt7 = Label(win, text = '5、扫码登陆后，程序会自动刷新购物车页面，到点会完成抢购动作')
+    txt7 = Label(win, text = '4、扫码登陆后，程序会自动刷新购物车页面，到点会完成抢购动作')
     txt7.config(font = 'Helvetica -10 bold', fg = 'red')
     txt7.place(x = 10, y = 200)
 
-    txt8 = Label(win, text = '6、本项目仅供交流学习使用，请勿用于其它任何商业用途')
+    txt8 = Label(win, text = '5、本项目仅供交流学习使用，请勿用于其它任何商业用途')
     txt8.config(font = 'Helvetica -10 bold', fg = 'red')
     txt8.place(x = 10, y = 220)
 
-    txt9 = Label(win, text = '7、如果想手动付款，输入开抢时间后不用输入支付密码，直接点开始就可以了')
+    txt9 = Label(win, text = '6、已关闭自动填充支付密码功能，会在支付页面停留 5 分钟, 手动输入支付密码，\n建议 800元以下开通免密支付，大于 800 元的商品手机扫码支付  ')
     txt9.config(font = 'Helvetica -10 bold', fg = 'red')
     txt9.place(x = 10, y = 240)
     win.mainloop()

@@ -276,7 +276,16 @@ class PlaywrightDrive:
         sleep(3)
 
         select_all_checkbox = self.page.locator('//*[@id="cart-operation-fixed"]/label/span[1]/input')
+        settle_button = None
         if select_all_checkbox:
+            select_all_checkbox.click()
+            # 解决第一次点击结算失败的问题
+            sleep(3)
+            settle_button = self.page.locator('//*[@id="settlementContainer_1"]/div[4]/div/div[2]')
+            settle_button.click()
+            sleep(3)
+            self.page.go_back()
+            sleep(3)
             select_all_checkbox.click()
             print("已经选中全部商品！！！")
 
@@ -298,20 +307,21 @@ class PlaywrightDrive:
 
                 try:
                     # 结算
-                    settle_button = self.page.locator('//*[@id="settlementContainer_1"]/div[4]/div/div[2]')
-                    if settle_button:
+                    # settle_button = self.page.locator('//*[@id="settlementContainer_1"]/div[4]/div/div[2]')
+                    if settle_button.is_enabled() and "结算" in settle_button.text_content():
                         settle_button.click()
                         print("已经点击结算按钮...")
                         click_submit_times = 0
                         while True:
                             try:
-                                if click_submit_times < 10:
+                                if click_submit_times < 30:
                                     self.page.get_by_text('提交订单').click()
                                     print("已经点击提交订单按钮")
                                     submit_succ = True
                                     break
                                 else:
                                     print("提交订单失败...")
+                                    break
                             except Exception as e:
                                 print("没发现提交按钮, 页面未加载, 重试...")
                                 click_submit_times = click_submit_times + 1
@@ -324,12 +334,16 @@ class PlaywrightDrive:
         if submit_succ:
             if self.password:
                 self.pay()
+            else:
+                # 如果没有密码，直接等待5分钟扫码支付
+                sleep(300)
 
 
     def pay(self):
         try:
             # 等待输入密码框出现
-            element = self.page.wait_for_selector('//*[@id="root"]/div/form/div[3]/div[1]/div[1]/div/div[1]/div/span', timeout=10000)
+            # element = self.page.wait_for_selector('//*[@id="password"]', timeout=10000)
+            element = self.page.locator('input[data-aspm-desc="密码-输入框"]')
             element.fill(self.password)
             # 等待并点击提交按钮
             comform_button = self.page.locator('//*[@id="root"]/div/form/button')
