@@ -5,6 +5,9 @@ import datetime
 from tkinter import *
 from seckill.seckill_taobao import ChromeDrive, PlaywrightDrive
 
+import os
+os.environ["PLAYWRIGHT_BROWSERS_PATH"] = os.path.join(os.path.dirname(__file__), "playwright_browsers")
+
 
 def run_killer(txt, txt2):
     seckill_time = txt.get()
