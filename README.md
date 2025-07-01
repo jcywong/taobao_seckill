@@ -14,3 +14,15 @@
 #### 如果想直接绕过淘宝的检测，可以手动打开浏览器登陆淘宝，然后再用selenium接管浏览器。只提供思路，具体实现大佬们可以自己摸索。
 
 
+
+
+# jcy
+1. 复制playwright_browsers目录到项目根目录下 
+    - windows: C:\Users\YourName\AppData\Local\ms-playwright 
+    - mac: /Users/YourName/Library/Caches/ms-playwright
+
+2. 打包
+```bash
+ pyinstaller --onefile --add-data "playwright_browsers:playwright_browsers" --collect-all playwright main.py --noconsole
+```
+
